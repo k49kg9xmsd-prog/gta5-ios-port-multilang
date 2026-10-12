@@ -103,7 +103,7 @@ final class ControlButton: UIView {
         layer.borderColor = UIColor.white.withAlphaComponent(pressed ? 0.9 : 0.28).cgColor
         icon.tintColor = pressed ? UIColor.black.withAlphaComponent(0.9) : UIColor.white.withAlphaComponent(0.92)
         ring.opacity = active && !pressed ? 1 : 0
-        accessibilityValue = pressed ? "Held" : active ? "On" : nil
+        accessibilityValue = pressed ? AppLanguage.choose("Held") : active ? AppLanguage.choose("On") : nil
     }
 
     func setPressed(_ value: Bool) {
@@ -246,51 +246,94 @@ final class TouchControlsView: UIView {
     private let haptics = UIImpactFeedbackGenerator(style: .light)
 
     // On foot
-    private let fire = ControlButton("fire", icon: "fire", label: "Fire")
-    private let aim = ControlButton("aim", icon: "aim", label: "Aim")
-    private let leftFire = ControlButton("leftFire", icon: "fire", label: "Fire, left hand")
-    private let jump = ControlButton("jump", icon: "jump", label: "Jump")
-    private let enter = ControlButton("enter", icon: "enter_exit", label: "Enter vehicle")
-    private let weapons = ControlButton("weapons", icon: "weapons", label: "Weapon wheel")
-    private let reload = ControlButton("reload", icon: "reload", label: "Reload")
-    private let cover = ControlButton("cover", icon: "cover", label: "Take cover")
-    private let crouch = ControlButton("crouch", icon: "crouch", label: "Stealth")
-    private let switcher = ControlButton("switchCharacter", icon: "switch_character", label: "Switch character")
+    private let fire = ControlButton("fire", icon: "fire", label: AppLanguage.choose("Fire"))
+    private let aim = ControlButton("aim", icon: "aim", label: AppLanguage.choose("Aim"))
+    private let leftFire = ControlButton("leftFire", icon: "fire", label: AppLanguage.choose("Fire, left hand"))
+    private let jump = ControlButton("jump", icon: "jump", label: AppLanguage.choose("Jump"))
+    private let enter = ControlButton("enter", icon: "enter_exit", label: AppLanguage.choose("Enter vehicle"))
+    private let weapons = ControlButton("weapons", icon: "weapons", label: AppLanguage.choose("Weapon wheel"))
+    private let reload = ControlButton("reload", icon: "reload", label: AppLanguage.choose("Reload"))
+    private let cover = ControlButton("cover", icon: "cover", label: AppLanguage.choose("Take cover"))
+    private let crouch = ControlButton("crouch", icon: "crouch", label: AppLanguage.choose("Stealth"))
+    private let switcher = ControlButton("switchCharacter", icon: "switch_character", label: AppLanguage.choose("Switch character"))
     // Vehicles
-    private let gas = ControlButton("gas", icon: "gas", label: "Gas")
-    private let brake = ControlButton("brake", icon: "brake", label: "Brake and reverse")
-    private let handbrake = ControlButton("handbrake", icon: "handbrake", label: "Handbrake")
-    private let driveBy = ControlButton("driveBy", icon: "fire", label: "Aim and shoot from vehicle")
-    private let horn = ControlButton("horn", icon: "horn", label: "Horn")
-    private let lookBack = ControlButton("lookBack", icon: "look_back", label: "Look behind")
-    private let vehicleWeapon = ControlButton("vehicleWeapon", icon: "vehicle_weapon", label: "Next vehicle weapon")
-    private let dive = ControlButton("dive", icon: "dive", label: "Dive")
-    private let surface = ControlButton("surface", icon: "surface", label: "Surface")
+    private let gas = ControlButton("gas", icon: "gas", label: AppLanguage.choose("Gas"))
+    private let brake = ControlButton("brake", icon: "brake", label: AppLanguage.choose("Brake and reverse"))
+    private let handbrake = ControlButton("handbrake", icon: "handbrake", label: AppLanguage.choose("Handbrake"))
+    private let driveBy = ControlButton("driveBy", icon: "fire", label: AppLanguage.choose("Aim and shoot from vehicle"))
+    private let horn = ControlButton("horn", icon: "horn", label: AppLanguage.choose("Horn"))
+    private let lookBack = ControlButton("lookBack", icon: "look_back", label: AppLanguage.choose("Look behind"))
+    private let vehicleWeapon = ControlButton("vehicleWeapon", icon: "vehicle_weapon", label: AppLanguage.choose("Next vehicle weapon"))
+    private let dive = ControlButton("dive", icon: "dive", label: AppLanguage.choose("Dive"))
+    private let surface = ControlButton("surface", icon: "surface", label: AppLanguage.choose("Surface"))
     // Aircraft
-    private let airFire = ControlButton("airFire", icon: "special", label: "Fire aircraft weapon")
-    private let gear = ControlButton("gear", icon: "landing_gear", label: "Landing gear")
+    private let airFire = ControlButton("airFire", icon: "special", label: AppLanguage.choose("Fire aircraft weapon"))
+    private let gear = ControlButton("gear", icon: "landing_gear", label: AppLanguage.choose("Landing gear"))
     // Utility bar
-    private let camera = ControlButton("camera", icon: "camera", label: "Change camera")
-    private let phone = ControlButton("phone", icon: "phone", label: "Phone")
-    private let pause = ControlButton("pause", icon: "pause", label: "Pause menu")
-    private let settings = ControlButton("settings", icon: "settings", label: "Settings")
-    private let lights = ControlButton("lights", icon: "lights", label: "Headlights")
-    private let radio = ControlButton("radio", icon: "radio", label: "Radio")
+    private let camera = ControlButton("camera", icon: "camera", label: AppLanguage.choose("Change camera"))
+    private let phone = ControlButton("phone", icon: "phone", label: AppLanguage.choose("Phone"))
+    private let pause = ControlButton("pause", icon: "pause", label: AppLanguage.choose("Pause menu"))
+    private let settings = ControlButton("settings", icon: "settings", label: AppLanguage.choose("Settings"))
+    private let lights = ControlButton("lights", icon: "lights", label: AppLanguage.choose("Headlights"))
+    private let radio = ControlButton("radio", icon: "radio", label: AppLanguage.choose("Radio"))
     // Menu and phone dock
-    private let up = ControlButton("up", icon: "up", label: "Up")
-    private let down = ControlButton("down", icon: "down", label: "Down")
-    private let left = ControlButton("left", icon: "left", label: "Left")
-    private let right = ControlButton("right", icon: "right", label: "Right")
-    private let accept = ControlButton("accept", icon: "accept", label: "Select")
-    private let back = ControlButton("back", icon: "back", label: "Back")
-    private let tabLeft = ControlButton("tabLeft", icon: "tab_left", label: "Previous tab")
-    private let tabRight = ControlButton("tabRight", icon: "tab_right", label: "Next tab")
+    private let up = ControlButton("up", icon: "up", label: AppLanguage.choose("Up"))
+    private let down = ControlButton("down", icon: "down", label: AppLanguage.choose("Down"))
+    private let left = ControlButton("left", icon: "left", label: AppLanguage.choose("Left"))
+    private let right = ControlButton("right", icon: "right", label: AppLanguage.choose("Right"))
+    private let accept = ControlButton("accept", icon: "accept", label: AppLanguage.choose("Select"))
+    private let back = ControlButton("back", icon: "back", label: AppLanguage.choose("Back"))
+    private let tabLeft = ControlButton("tabLeft", icon: "tab_left", label: AppLanguage.choose("Previous tab"))
+    private let tabRight = ControlButton("tabRight", icon: "tab_right", label: AppLanguage.choose("Next tab"))
 
     private var allButtons: [ControlButton] {
         [fire, aim, leftFire, jump, enter, weapons, reload, cover, crouch, switcher, gas, brake, handbrake, driveBy, horn, lookBack,
          vehicleWeapon, dive, surface, airFire, gear, camera, phone, pause, settings, lights, radio,
          up, down, left, right, accept, back, tabLeft, tabRight]
     }
+    /// Refresh accessibility names for the active language without recreating controls.
+    func refreshLanguage() {
+        let labels: [String: String] = [
+            "fire": AppLanguage.choose("Fire"),
+            "aim": AppLanguage.choose("Aim"),
+            "leftFire": AppLanguage.choose("Fire, left hand"),
+            "jump": AppLanguage.choose("Jump"),
+            "enter": AppLanguage.choose("Enter vehicle"),
+            "weapons": AppLanguage.choose("Weapon wheel"),
+            "reload": AppLanguage.choose("Reload"),
+            "cover": AppLanguage.choose("Take cover"),
+            "crouch": AppLanguage.choose("Stealth"),
+            "switchCharacter": AppLanguage.choose("Switch character"),
+            "gas": AppLanguage.choose("Gas"),
+            "brake": AppLanguage.choose("Brake and reverse"),
+            "handbrake": AppLanguage.choose("Handbrake"),
+            "driveBy": AppLanguage.choose("Aim and shoot from vehicle"),
+            "horn": AppLanguage.choose("Horn"),
+            "lookBack": AppLanguage.choose("Look behind"),
+            "vehicleWeapon": AppLanguage.choose("Next vehicle weapon"),
+            "dive": AppLanguage.choose("Dive"),
+            "surface": AppLanguage.choose("Surface"),
+            "airFire": AppLanguage.choose("Fire aircraft weapon"),
+            "gear": AppLanguage.choose("Landing gear"),
+            "camera": AppLanguage.choose("Change camera"),
+            "phone": AppLanguage.choose("Phone"),
+            "pause": AppLanguage.choose("Pause menu"),
+            "settings": AppLanguage.choose("Settings"),
+            "lights": AppLanguage.choose("Headlights"),
+            "radio": AppLanguage.choose("Radio"),
+            "up": AppLanguage.choose("Up"),
+            "down": AppLanguage.choose("Down"),
+            "left": AppLanguage.choose("Left"),
+            "right": AppLanguage.choose("Right"),
+            "accept": AppLanguage.choose("Select"),
+            "back": AppLanguage.choose("Back"),
+            "tabLeft": AppLanguage.choose("Previous tab"),
+            "tabRight": AppLanguage.choose("Next tab"),
+        ]
+        for button in allButtons { if let label = labels[button.name] { button.accessibilityLabel = label } }
+        updateVisibility()
+    }
+
     private var visible: [ControlButton] = []
 
     override init(frame: CGRect) {
@@ -398,7 +441,7 @@ final class TouchControlsView: UIView {
             button.isAccessibilityElement = isShown
         }
         weapons.setIcon("weapons")
-        enter.accessibilityLabel = context == .onFoot ? "Enter vehicle" : context.flying ? "Hold to exit aircraft" : "Exit vehicle"
+        enter.accessibilityLabel = context == .onFoot ? AppLanguage.choose("Enter vehicle") : context.flying ? AppLanguage.choose("Hold to exit aircraft") : AppLanguage.choose("Exit vehicle")
         gas.setIcon(context == .bicycle ? "pedal" : "gas")
         setNeedsLayout()
     }

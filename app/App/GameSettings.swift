@@ -6,11 +6,11 @@ enum GameMode: Int, CaseIterable {
     case story = 1
     case sandbox = 2
 
-    var title: String { self == .story ? "Story mode" : "Sandbox" }
+    var title: String { self == .story ? AppLanguage.choose("Story mode") : AppLanguage.choose("Sandbox") }
     var detail: String {
         switch self {
-        case .story: return "The campaign with missions. Continues your latest save, or starts from the Prologue."
-        case .sandbox: return "Free roam anywhere on the map with every weapon. No missions."
+        case .story: return AppLanguage.choose("The campaign with missions. Continues your latest save, or starts from the Prologue.")
+        case .sandbox: return AppLanguage.choose("Free roam anywhere on the map with every weapon. No missions.")
         }
     }
 }
@@ -83,7 +83,7 @@ final class GameSettings {
         get { defaults.object(forKey: "targetingMode") as? Int ?? 1 }
         set { defaults.set(newValue, forKey: "targetingMode") }
     }
-    static let targetingTitles = ["Traditional lock-on", "Assisted aim", "Assisted free aim", "Free aim"]
+    static var targetingTitles: [String] { [AppLanguage.choose("Traditional lock-on"), AppLanguage.choose("Assisted aim"), AppLanguage.choose("Assisted free aim"), AppLanguage.choose("Free aim")] }
 
     /// nil until the player has chosen on the launch screen.
     var gameModeChoice: GameMode? {
@@ -131,7 +131,7 @@ final class GameSettings {
         }
         set { defaults.set(newValue, forKey: "frameRateCap") }
     }
-    static func frameRateTitle(_ cap: Int) -> String { cap == 0 ? "Unlocked" : "\(cap) FPS" }
+    static func frameRateTitle(_ cap: Int) -> String { cap == 0 ? AppLanguage.choose("Unlocked") : "\(cap) FPS" }
 
     // Crash fallback: a launch that never reached a stable world is treated
     // as a memory kill, and the last preset that worked is restored.

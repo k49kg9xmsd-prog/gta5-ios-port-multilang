@@ -8,13 +8,13 @@ import os
 enum GraphicsPreset: Int, CaseIterable {
     case battery, performance, balanced, quality, ultra, max
 
-    var title: String { ["Battery", "Performance", "Balanced", "Quality", "Ultra", "Max"][rawValue] }
+    var title: String { [AppLanguage.choose("Battery"), AppLanguage.choose("Performance"), AppLanguage.choose("Balanced"), AppLanguage.choose("Quality"), AppLanguage.choose("Ultra"), AppLanguage.choose("Max")][rawValue] }
     /// Render height in pixels; width follows the screen's shape.
     var height: Int { [432, 540, 720, 900, 1080, 1290][rawValue] }
     var detail: String {
-        ["Lowest load, longest play time", "Today's tested setup for 6 GB iPhones", "Sharper image and shadows",
-         "Higher detail textures, effects and draw distance", "1080p with high shaders, shadows and reflections",
-         "Near-native resolution, high textures and full draw distance (newest Pro phones)"][rawValue]
+        [AppLanguage.choose("Lowest load, longest play time"), AppLanguage.choose("Today's tested setup for 6 GB iPhones"), AppLanguage.choose("Sharper image and shadows"),
+         AppLanguage.choose("Higher detail textures, effects and draw distance"), AppLanguage.choose("1080p with high shaders, shadows and reflections"),
+         AppLanguage.choose("Near-native resolution, high textures and full draw distance (newest Pro phones)")][rawValue]
     }
 
     /// Engine command-line options. Shader quality never goes below 1 (the

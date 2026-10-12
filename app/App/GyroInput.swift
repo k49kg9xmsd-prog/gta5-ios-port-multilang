@@ -5,13 +5,13 @@ import UIKit
 /// for the fine corrections a thumb cannot make.
 enum GyroAimMode: Int, CaseIterable {
     case off, whileAiming, always
-    var title: String { ["Off", "While aiming", "Always on foot"][rawValue] }
+    var title: String { [AppLanguage.choose("Off"), AppLanguage.choose("While aiming"), AppLanguage.choose("Always on foot")][rawValue] }
 }
 
 /// Optional tilt steering for ground vehicles.
 enum TiltSteerMode: Int, CaseIterable {
     case off, assist, full
-    var title: String { ["Off", "Assist", "Tilt to steer"][rawValue] }
+    var title: String { [AppLanguage.choose("Off"), AppLanguage.choose("Assist"), AppLanguage.choose("Tilt to steer")][rawValue] }
 }
 
 final class GyroInput {

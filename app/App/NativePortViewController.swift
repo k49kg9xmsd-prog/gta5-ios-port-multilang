@@ -16,6 +16,8 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
     private var metalView: MTKView!
     private var queue: MTLCommandQueue?
     private let output = UITextView()
+    private let homeTitle = UILabel()
+    private let homeSubtitle = UILabel()
     private let controllerLabel = UILabel()
     private let fpsLabel = UILabel()
     private var lastFPSLabelUpdate: CFTimeInterval = 0
@@ -89,25 +91,25 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         metalView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(metalView)
 
-        let title = UILabel()
-        title.text = "GTA V Port"
+        let title = homeTitle
+        title.text = AppLanguage.choose("GTA V Port")
         title.font = .systemFont(ofSize: 34, weight: .bold)
         title.textColor = .white
-        let subtitle = UILabel()
-        subtitle.text = "Fan project · plays your own game files"
+        let subtitle = homeSubtitle
+        subtitle.text = AppLanguage.choose("Fan project · plays your own game files")
         subtitle.font = .preferredFont(forTextStyle: .subheadline)
         subtitle.textColor = .lightGray
-        controllerLabel.text = "Controller: none connected"
+        controllerLabel.text = AppLanguage.choose("Controller: none connected")
         controllerLabel.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
         controllerLabel.textColor = .lightGray
         var play = UIButton.Configuration.filled()
-        play.title = "Play"
+        play.title = AppLanguage.choose("Play")
         play.cornerStyle = .large
         play.buttonSize = .large
         launchButton.configuration = play
         launchButton.configurationUpdateHandler = { button in
             // Progress text (preparing assets, loading) shows on the disabled button.
-            button.configuration?.title = button.isEnabled ? "Play" : button.title(for: .disabled) ?? "Loading…"
+            button.configuration?.title = button.isEnabled ? AppLanguage.choose("Play") : button.title(for: .disabled) ?? AppLanguage.choose("Loading…")
         }
         launchButton.addTarget(self, action: #selector(startEngine), for: .touchUpInside)
         output.isEditable = false
@@ -115,10 +117,11 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         output.backgroundColor = UIColor.black.withAlphaComponent(0.65)
         output.textColor = .white
         output.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
-        settingsButton.setTitle("Settings", for: .normal)
+        settingsButton.setTitle(AppLanguage.choose("Settings"), for: .normal)
         settingsButton.setImage(UIImage(systemName: "gearshape"), for: .normal)
         settingsButton.addAction(UIAction { [weak self] _ in self?.showSettings() }, for: .touchUpInside)
-        layoutButton.setTitle("Edit controls layout", for: .normal)
+        NotificationCenter.default.addObserver(self, selector: #selector(languageChanged), name: AppLanguage.changed, object: nil)
+        layoutButton.setTitle(AppLanguage.choose("Edit controls layout"), for: .normal)
         layoutButton.setImage(UIImage(systemName: "hand.tap"), for: .normal)
         layoutButton.addAction(UIAction { [weak self] _ in self?.showLayoutEditor() }, for: .touchUpInside)
         serverButton.contentHorizontalAlignment = .leading
@@ -137,7 +140,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         if let index = arguments.firstIndex(of: "--game-mode"), index + 1 < arguments.count {
             GameSettings.shared.gameMode = arguments[index + 1] == "story" ? .story : .sandbox
         }
-        modePicker.accessibilityLabel = "Game mode"
+        modePicker.accessibilityLabel = AppLanguage.choose("Game mode")
         modePicker.overrideUserInterfaceStyle = .dark
         modePicker.addAction(UIAction { [weak self] _ in
             guard let self, self.modePicker.selectedSegmentIndex >= 0 else { return }
@@ -180,7 +183,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         fpsLabel.layer.cornerRadius = 6
         fpsLabel.clipsToBounds = true
         fpsLabel.isUserInteractionEnabled = false
-        fpsLabel.accessibilityLabel = "Game frame rate"
+        fpsLabel.accessibilityLabel = AppLanguage.choose("Game frame rate")
         fpsLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(fpsLabel)
         touchControls.translatesAutoresizingMaskIntoConstraints = false
@@ -276,10 +279,10 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
             let parts = line.split(separator: " ")
             if parts.count >= 3 {
                 let size = Double(parts[2]).map { String(format: "%.1f GB", $0 * 1048576 / 1_000_000_000) } ?? ""
-                launchButton.setTitle("Preparing assets… \(parts[1])% · \(size)", for: .disabled); launchButton.setNeedsUpdateConfiguration()
+                launchButton.setTitle(AppLanguage.interpolate(AppLanguage.choose("Preparing assets… {arg0}% · {arg1}"), [String(describing: parts[1]), String(describing: size)]), for: .disabled); launchButton.setNeedsUpdateConfiguration()
             }
         }
-        if line == "ASSET_WARM_COMPLETE" { launchButton.setTitle("Loading…", for: .disabled); launchButton.setNeedsUpdateConfiguration() }
+        if line == "ASSET_WARM_COMPLETE" { launchButton.setTitle(AppLanguage.choose("Loading…"), for: .disabled); launchButton.setNeedsUpdateConfiguration() }
         if line == "WORLD_READY", ProcessInfo.processInfo.arguments.contains("--capture-world") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 35) { PGCaptureNativeFrame("optimized-world") }
         }
@@ -332,11 +335,25 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         if !output.text.isEmpty { output.scrollRangeToVisible(NSRange(location: output.text.utf16.count - 1, length: 1)) }
     }
 
+    @objc private func languageChanged() {
+        homeTitle.text = AppLanguage.choose("GTA V Port")
+        homeSubtitle.text = AppLanguage.choose("Fan project · plays your own game files")
+        settingsButton.setTitle(AppLanguage.choose("Settings"), for: .normal)
+        layoutButton.setTitle(AppLanguage.choose("Edit controls layout"), for: .normal)
+        for (index, mode) in GameMode.allCases.enumerated() { modePicker.setTitle(mode.title, forSegmentAt: index) }
+        modePicker.accessibilityLabel = AppLanguage.choose("Game mode")
+        fpsLabel.accessibilityLabel = AppLanguage.choose("Game frame rate")
+        if !engineStarted { updateServerStatus() }
+        refreshModeChoice()
+        launchButton.setNeedsUpdateConfiguration()
+        touchControls.refreshLanguage()
+    }
+
     /// The launch screen asks for a mode once; after that it remembers it.
     private func refreshModeChoice() {
         let choice = GameSettings.shared.gameModeChoice
         modePicker.selectedSegmentIndex = choice.flatMap { GameMode.allCases.firstIndex(of: $0) } ?? UISegmentedControl.noSegment
-        modeDetail.text = choice?.detail ?? "Choose Story mode or Sandbox to play."
+        modeDetail.text = choice?.detail ?? AppLanguage.choose("Choose Story mode or Sandbox to play.")
         if !engineStarted { launchButton.isEnabled = choice != nil }
     }
 
@@ -367,16 +384,16 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         appendLog("Graphics: " + GraphicsConfiguration.apply(GameSettings.shared, screen: view.bounds.size))
         appendLog("Device: " + GameSettings.shared.tier.summary)
         GameSettings.shared.markBootStarted()
-        launchButton.setTitle("Loading…", for: .disabled); launchButton.setNeedsUpdateConfiguration()
+        launchButton.setTitle(AppLanguage.choose("Loading…"), for: .disabled); launchButton.setNeedsUpdateConfiguration()
         appendLog("Native touch controls support held buttons, sprint and weapon selection.")
         startAudio()
         let (root, rootNote) = EnginePaths.filesRoot()
         if let rootNote { appendLog(rootNote) }
         if GameFolder.isChosen {
             guard let data = GameFolder.open() else {
-                appendLog("The game folder on this iPhone can't be opened any more. Choose it again.")
-                showWhenFree(title: "Game files not found", message: "The game folder was moved or deleted. Put it back in Files › On My iPhone › GTA V Port, or pick it again.")
-                GameFolder.clear(); updateServerStatus(); launchButton.isEnabled = true; launchButton.setTitle("Play", for: .normal)
+                appendLog(AppLanguage.choose("The game folder on this iPhone can't be opened any more. Choose it again."))
+                showWhenFree(title: AppLanguage.choose("Game files not found"), message: AppLanguage.choose("The game folder was moved or deleted. Put it back in Files › On My iPhone › GTA V Port, or pick it again."))
+                GameFolder.clear(); updateServerStatus(); launchButton.isEnabled = true; launchButton.setTitle(AppLanguage.choose("Play"), for: .normal)
                 return
             }
             PGSetLocalGameFolder(data.path)
@@ -535,21 +552,21 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
     private func updateServerStatus(_ status: String? = nil) {
         let server = GameSettings.shared.assetServer
         let text: String
-        if GameFolder.inAppFolder { text = "Game files: \"\(GameFolder.name)\" in the GTA V Port folder ✓ (tap to change)" }
-        else if GameFolder.isChosen { text = "Game files: \"\(GameFolder.name)\" on this iPhone ✓ (tap to change)" }
-        else if server.isEmpty { text = "Game files: not set. Move your game folder into Files › On My iPhone › GTA V Port, or tap here." }
-        else { text = "Game files: from \(server)\(status.map { " · " + $0 } ?? "")" }
+        if GameFolder.inAppFolder { text = AppLanguage.interpolate(AppLanguage.choose("Game files: \"{arg0}\" in the GTA V Port folder ✓ (tap to change)"), [String(describing: GameFolder.name)]) }
+        else if GameFolder.isChosen { text = AppLanguage.interpolate(AppLanguage.choose("Game files: \"{arg0}\" on this iPhone ✓ (tap to change)"), [String(describing: GameFolder.name)]) }
+        else if server.isEmpty { text = AppLanguage.choose("Game files: not set. Move your game folder into Files › On My iPhone › GTA V Port, or tap here.") }
+        else { text = AppLanguage.interpolate(AppLanguage.choose("Game files: from {arg0}{arg1}"), [String(describing: server), String(describing: status.map { " · " + $0 } ?? "")]) }
         serverButton.setTitle(text, for: .normal)
         launchButton.isEnabled = (GameFolder.isChosen || !server.isEmpty) && !engineStarted
     }
     /// Where the game files come from: a folder on this iPhone, or a server (your computer).
     private func askForGameFiles() {
         guard !engineStarted else { return }
-        let sheet = UIAlertController(title: "Where are your game files?", message: "Easiest: in the Files app, move your game folder into On My iPhone › GTA V Port. The app finds it there by itself.", preferredStyle: .actionSheet)
-        sheet.addAction(UIAlertAction(title: "I moved it into the GTA V Port folder", style: .default) { [weak self] _ in self?.checkAppFolder() })
-        sheet.addAction(UIAlertAction(title: "Pick a folder on this iPhone", style: .default) { [weak self] _ in self?.pickGameFolder() })
-        sheet.addAction(UIAlertAction(title: "My computer (server address)", style: .default) { [weak self] _ in self?.askForAssetServer() })
-        sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        let sheet = UIAlertController(title: AppLanguage.choose("Where are your game files?"), message: AppLanguage.choose("Easiest: in the Files app, move your game folder into On My iPhone › GTA V Port. The app finds it there by itself."), preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: AppLanguage.choose("I moved it into the GTA V Port folder"), style: .default) { [weak self] _ in self?.checkAppFolder() })
+        sheet.addAction(UIAlertAction(title: AppLanguage.choose("Pick a folder on this iPhone"), style: .default) { [weak self] _ in self?.pickGameFolder() })
+        sheet.addAction(UIAlertAction(title: AppLanguage.choose("My computer (server address)"), style: .default) { [weak self] _ in self?.askForAssetServer() })
+        sheet.addAction(UIAlertAction(title: AppLanguage.choose("Cancel"), style: .cancel))
         sheet.popoverPresentationController?.sourceView = serverButton
         present(sheet, animated: true)
     }
@@ -563,18 +580,18 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         GameFolder.clear()
         if GameFolder.findInAppFolder() { updateServerStatus(); return }
         updateServerStatus()
-        showWhenFree(title: "Game files not found", message: "There is no complete game folder in Files › On My iPhone › GTA V Port yet.\n\nOpen the Files app, find your game folder (the one with \"data\" and \"b\" inside), long-press it, tap Move, and choose On My iPhone › GTA V Port. If you got a .rar or .zip, unpack it first.")
+        showWhenFree(title: AppLanguage.choose("Game files not found"), message: AppLanguage.choose("There is no complete game folder in Files › On My iPhone › GTA V Port yet.\n\nOpen the Files app, find your game folder (the one with \"data\" and \"b\" inside), long-press it, tap Move, and choose On My iPhone › GTA V Port. If you got a .rar or .zip, unpack it first."))
     }
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         guard let folder = urls.first else { appendLog("Folder picker returned nothing."); return }
-        serverButton.setTitle("Game files: checking the folder…", for: .normal)
+        serverButton.setTitle(AppLanguage.choose("Game files: checking the folder…"), for: .normal)
         DispatchQueue.global(qos: .userInitiated).async {
             let problem = GameFolder.choose(folder)
             DispatchQueue.main.async {
                 self.updateServerStatus()
                 guard let problem else { return }
                 self.appendLog("Game folder refused: " + problem)
-                self.showWhenFree(title: "That folder can't be used", message: problem)
+                self.showWhenFree(title: AppLanguage.choose("That folder can't be used"), message: problem)
             }
         }
     }
@@ -591,7 +608,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         present(alert, animated: true)
     }
     private func askForAssetServer() {
-        let alert = UIAlertController(title: "Game file server", message: "The address of the computer that serves your own copy of the game files, for example https://my-pc.tailnet-name.ts.net", preferredStyle: .alert)
+        let alert = UIAlertController(title: AppLanguage.choose("Game file server"), message: AppLanguage.choose("The address of the computer that serves your own copy of the game files, for example https://my-pc.tailnet-name.ts.net"), preferredStyle: .alert)
         alert.addTextField { field in
             field.text = GameSettings.shared.assetServer
             field.placeholder = "https://my-pc.tailnet-name.ts.net"
@@ -599,8 +616,8 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
             field.autocapitalizationType = .none
             field.autocorrectionType = .no
         }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Save and test", style: .default) { [weak self, weak alert] _ in
+        alert.addAction(UIAlertAction(title: AppLanguage.choose("Cancel"), style: .cancel))
+        alert.addAction(UIAlertAction(title: AppLanguage.choose("Save and test"), style: .default) { [weak self, weak alert] _ in
             GameFolder.clear()
             GameSettings.shared.assetServer = alert?.textFields?.first?.text ?? ""
             self?.testAssetServer()
@@ -612,33 +629,33 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         var server = GameSettings.shared.assetServer
         while server.hasSuffix("/") { server.removeLast() }
         guard let url = URL(string: server + "/data/manifest.json"), url.scheme?.hasPrefix("http") == true else {
-            updateServerStatus("not a valid address"); return
+            updateServerStatus(AppLanguage.choose("not a valid address")); return
         }
-        updateServerStatus("checking…")
+        updateServerStatus(AppLanguage.choose("checking…"))
         var request = URLRequest(url: url, timeoutInterval: 10)
         request.httpMethod = "HEAD"
         URLSession.shared.dataTask(with: request) { [weak self] _, response, error in
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
             DispatchQueue.main.async {
-                if code == 200 { self?.updateServerStatus("connected ✓") }
-                else if let error { self?.updateServerStatus("can't connect (\(error.localizedDescription))") }
-                else { self?.updateServerStatus("answered \(code); is the address the folder with data/ and b/?") }
+                if code == 200 { self?.updateServerStatus(AppLanguage.choose("connected ✓")) }
+                else if let error { self?.updateServerStatus(AppLanguage.interpolate(AppLanguage.choose("can't connect ({arg0})"), [String(describing: error.localizedDescription)])) }
+                else { self?.updateServerStatus(AppLanguage.interpolate(AppLanguage.choose("answered {arg0}; is the address the folder with data/ and b/?"), [String(describing: code)])) }
             }
         }.resume()
     }
     /// The popup after a launch that ran out of memory: what happened, what changed, and the way back.
     private func explainRecovery(_ recovery: GameSettings.BootRecovery) {
         let lowered = recovery.fallback != recovery.failed
-        let title = lowered ? "Graphics lowered to \(recovery.fallback.title)" : "Resolution set back to Auto"
-        var message = "The game closed while starting on \(recovery.failed.title)"
-        if let height = recovery.resetHeight { message += " at \(height)p" }
-        message += ". That usually means this setting needs more memory than iOS gives the app on this iPhone (about \(recovery.memoryLimitMB) MB)."
-        message += lowered ? "\n\nThe game now starts on \(recovery.fallback.title)" : "\n\nThe game now starts at its usual resolution"
-        message += recovery.resetHeight != nil && lowered ? " with Auto resolution." : "."
-        message += " You can change this any time in Settings."
+        let title = lowered ? AppLanguage.interpolate(AppLanguage.choose("Graphics lowered to {arg0}"), [String(describing: recovery.fallback.title)]) : AppLanguage.choose("Resolution set back to Auto")
+        var message = AppLanguage.interpolate(AppLanguage.choose("The game closed while starting on {arg0}"), [String(describing: recovery.failed.title)])
+        if let height = recovery.resetHeight { message += AppLanguage.interpolate(AppLanguage.choose(" at {arg0}p"), [String(describing: height)]) }
+        message += AppLanguage.interpolate(AppLanguage.choose(". That usually means this setting needs more memory than iOS gives the app on this iPhone (about {arg0} MB)."), [String(describing: recovery.memoryLimitMB)])
+        message += lowered ? AppLanguage.interpolate(AppLanguage.choose("\n\nThe game now starts on {arg0}"), [String(describing: recovery.fallback.title)]) : AppLanguage.choose("\n\nThe game now starts at its usual resolution")
+        message += recovery.resetHeight != nil && lowered ? AppLanguage.choose(" with Auto resolution.") : "."
+        message += AppLanguage.choose(" You can change this any time in Settings.")
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Share log", style: .default) { _ in
+        alert.addAction(UIAlertAction(title: AppLanguage.choose("Share log"), style: .default) { _ in
             let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             let logs = ["native-port-previous.log", "native-port.log"].map { documents.appendingPathComponent($0) }
                 .filter { FileManager.default.fileExists(atPath: $0.path) }
@@ -646,7 +663,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
             sheet.popoverPresentationController?.sourceView = self.view
             self.present(sheet, animated: true)
         })
-        alert.addAction(UIAlertAction(title: "Try \(recovery.failed.title) again", style: .destructive) { _ in
+        alert.addAction(UIAlertAction(title: AppLanguage.interpolate(AppLanguage.choose("Try {arg0} again"), [String(describing: recovery.failed.title)]), style: .destructive) { _ in
             GameSettings.shared.undoRecovery(recovery)
             self.appendLog("Kept \(recovery.failed.title) after the warning.")
         })
@@ -741,9 +758,9 @@ final class NativePortViewController: UIViewController, MTKViewDelegate, UIDocum
         if let controller = GCController.controllers().first(where: { $0.extendedGamepad != nil }), let pad = controller.extendedGamepad {
             state = PGPadState(gamepad: pad)
             hasController = true
-            if diagnosticsOverlay?.isHidden != true { controllerLabel.text = "Controller: \(controller.vendorName ?? "Gamepad")" }
+            if diagnosticsOverlay?.isHidden != true { controllerLabel.text = AppLanguage.interpolate(AppLanguage.choose("Controller: {arg0}"), [String(describing: controller.vendorName ?? "Gamepad")]) }
         } else if diagnosticsOverlay?.isHidden != true {
-            controllerLabel.text = "Touch controls ready"
+            controllerLabel.text = AppLanguage.choose("Touch controls ready")
         }
         // With a controller connected the touch controls step aside (Settings › Touch controls).
         let touchActive = touchControlsAvailable && !(hasController && GameSettings.shared.hideTouchWithController)

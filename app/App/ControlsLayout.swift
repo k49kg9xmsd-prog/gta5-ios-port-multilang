@@ -40,7 +40,7 @@ final class ControlsLayoutEditorController: UIViewController {
     private let controls = TouchControlsView(frame: .zero)
     private let background = UIImageView()
     private let toolbar = UIStackView()
-    private let groupPicker = UISegmentedControl(items: ["On foot", "In a vehicle"])
+    private let groupPicker = UISegmentedControl(items: [AppLanguage.choose("On foot"), AppLanguage.choose("In a vehicle")])
     private let sizeSlider = UISlider()
     private let hideButton = UIButton(type: .system)
     private let hint = UILabel()
@@ -74,7 +74,7 @@ final class ControlsLayoutEditorController: UIViewController {
             controls.topAnchor.constraint(equalTo: view.topAnchor), controls.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
 
-        hint.text = "Drag a button to move it · pinch to resize"
+        hint.text = AppLanguage.choose("Drag a button to move it · pinch to resize")
         hint.font = .preferredFont(forTextStyle: .footnote)
         hint.textColor = UIColor.white.withAlphaComponent(0.85)
         hint.textAlignment = .center
@@ -86,15 +86,15 @@ final class ControlsLayoutEditorController: UIViewController {
         groupPicker.addAction(UIAction { [weak self] _ in self?.showGroup() }, for: .valueChanged)
         sizeSlider.minimumValue = 0.6
         sizeSlider.maximumValue = 1.8
-        sizeSlider.accessibilityLabel = "Size of the selected button"
+        sizeSlider.accessibilityLabel = AppLanguage.choose("Size of the selected button")
         sizeSlider.addAction(UIAction { [weak self] _ in self?.sizeChanged() }, for: .valueChanged)
         sizeSlider.widthAnchor.constraint(equalToConstant: 110).isActive = true
         hideButton.addAction(UIAction { [weak self] _ in self?.toggleHidden() }, for: .touchUpInside)
         let reset = UIButton(type: .system)
-        reset.setTitle("Reset", for: .normal)
+        reset.setTitle(AppLanguage.choose("Reset"), for: .normal)
         reset.addAction(UIAction { [weak self] _ in self?.resetGroup() }, for: .touchUpInside)
         let done = UIButton(type: .system)
-        done.setTitle("Done", for: .normal)
+        done.setTitle(AppLanguage.choose("Done"), for: .normal)
         done.titleLabel?.font = .preferredFont(forTextStyle: .headline)
         done.addAction(UIAction { [weak self] _ in self?.finish() }, for: .touchUpInside)
         for item in [groupPicker, sizeSlider, hideButton, reset, done] as [UIView] { toolbar.addArrangedSubview(item) }
@@ -141,13 +141,13 @@ final class ControlsLayoutEditorController: UIViewController {
         sizeSlider.value = Float(entry?.scale ?? 1)
         if let selected {
             let hidden = entry?.hidden ?? false
-            hideButton.setTitle(hidden ? "Show" : "Hide", for: .normal)
+            hideButton.setTitle(hidden ? AppLanguage.choose("Show") : AppLanguage.choose("Hide"), for: .normal)
             hideButton.isEnabled = !ControlsLayout.essential.contains(selected.name)
             hint.text = "\(selected.accessibilityLabel ?? selected.name)\(hidden ? " (hidden in game)" : "")"
         } else {
-            hideButton.setTitle("Hide", for: .normal)
+            hideButton.setTitle(AppLanguage.choose("Hide"), for: .normal)
             hideButton.isEnabled = false
-            hint.text = "Drag a button to move it · pinch to resize"
+            hint.text = AppLanguage.choose("Drag a button to move it · pinch to resize")
         }
     }
 
